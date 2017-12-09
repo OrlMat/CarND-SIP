@@ -56,9 +56,23 @@ class DBWNode(object):
         # TODO: Create `TwistController` object
         # self.controller = TwistController(<Arguments you wish to provide>)
 
-        # TODO: Subscribe to all the topics you need to
+        # DONE: Subscribe to all the topics you need to
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_cb)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
 
         self.loop()
+
+    # the callback (_cb) functions for the Subscribed topics
+    def twist_cmd_cb(self, twist_cmd)
+        self.twist_cmd = msg.twist
+
+    def current_velocity_cb(self, current_velocity)
+        self.current_velocity = msg.twist
+
+    def dbw_enabled_cb(self, dbw_enabled)
+        self.dbw_enabled = bool(msg.data)
+
 
     def loop(self):
         rate = rospy.Rate(50) # 50Hz
