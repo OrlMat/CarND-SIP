@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+from copy import deepcopy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 
@@ -43,12 +44,17 @@ class WaypointUpdater(object):
         self.currentPose = None
         self.trafficLight = -1
 
+        self.maxSpeed = rospy.get_param('/waypoint_loader/velocity')
+        self.maxSpeed *= 1000.0/3600.0 #Changing from kph to m/s
+        print "MaxSpeed is: " + str(self.maxSpeed)
+
         self.loop()
 
     def loop(self):
         print "Entering loop function"
         rate = rospy.Rate(2) # 2Hz
         while not rospy.is_shutdown():
+            passedTrafficLight = False
             if (self.baseWaypoints is not None) and (self.currentPose is not None):
                 #print "baseWaypoint and currentPose received"
                 nextMessage = Lane()
@@ -59,8 +65,24 @@ class WaypointUpdater(object):
                 #TODO: Check waypoint speed against maximum speed
                 #TODO: Check trafficLight index and set speed 0.
                 #TODO: Fix all velocities to make sure that we keep within acceleration limits.
-                nextMessage.waypoints = \
-                    self.baseWaypoints[nextWaypointIndex:nextWaypointIndex+LOOKAHEAD_WPS]
+                waypointSet = self.baseWaypoints[nextWaypointIndex:nextWaypointIndex+LOOKAHEAD_WPS]
+                for i, wp in enumerate(waypointSet):
+                    newWp = deepcopy(wp)
+                    index = nextWaypointIndex + i
+                    newWp.twist.twist.linear.x = min(self.maxSpeed, newWp.twist.twist.linear.x)
+
+                    if index == self.trafficLight:
+                        passedTrafficLight = True
+
+                    if passedTrafficLight:
+                        newWp.twist.twist.linear.x = 0
+
+                    nextMessage.waypoints.append(newWp)
+
+                #TODO: Fix all velocities differences between neighbouring waypoints to make sure that we keep within acceleration limits before stop signs.
+                for i, wp in enumerate(nextMessage.waypoints[::-1]):
+                    pass
+
 
                 self.final_waypoints_pub.publish(nextMessage)
 
