@@ -27,33 +27,56 @@ LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this n
 class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
+        print "Initial startup"
 
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('current_pose', PoseStamped, self.pose_cb)
+        rospy.Subscriber('base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
+        #rospy.Subscriber('traffic_waypoint', Int32, self.traffic_cb)
+        print "Have subscribed to current_pose, base_waypoints and traffic_waypoint"
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
+        self.baseWaypoints = None
+        self.currentPose = None
+        self.trafficLight = -1
 
-        rospy.spin()
+        self.loop()
+
+    def loop(self):
+        print "Entering loop function"
+        rate = rospy.Rate(2) # 2Hz
+        while not rospy.is_shutdown():
+            if (self.baseWaypoints is not None) and (self.currentPose is not None):
+                #print "baseWaypoint and currentPose received"
+                nextMessage = Lane()
+                nextWaypointIndex = self.nextWaypoint(self.baseWaypoints)
+                print "nextWaypointIndex is: " + str(nextWaypointIndex)
+
+                #TODO: Fix deepcopy of the individual waypoints_cb
+                #TODO: Check waypoint speed against maximum speed
+                #TODO: Check trafficLight index and set speed 0.
+                #TODO: Fix all velocities to make sure that we keep within acceleration limits.
+                nextMessage.waypoints = \
+                    self.baseWaypoints[nextWaypointIndex:nextWaypointIndex+LOOKAHEAD_WPS]
+
+                self.final_waypoints_pub.publish(nextMessage)
+
+            rate.sleep()
 
     def pose_cb(self, msg):
-        # TODO: Implement
-        pass
+        self.currentPose = msg.pose
 
     def waypoints_cb(self, waypoints):
-        # TODO: Implement
-        pass
+        self.baseWaypoints = waypoints.waypoints
 
     def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        self.trafficLight = msg.data
 
     def obstacle_cb(self, msg):
-        # TODO: Callback for /obstacle_waypoint message. We will implement it later
+        # Callback for /obstacle_waypoint message. Not needed
         pass
 
     def get_waypoint_velocity(self, waypoint):
@@ -70,6 +93,73 @@ class WaypointUpdater(object):
             wp1 = i
         return dist
 
+    def distanceToWaypoint(self, waypoint):
+        x1 = waypoint.pose.pose.position.x
+        y1 = waypoint.pose.pose.position.y
+
+        #vehicle coordinates
+        xv = self.currentPose.position.x
+        yv = self.currentPose.position.y
+
+        return math.sqrt((x1-xv)**2 + (y1-yv)**2)
+
+    '''
+    If needed we could make some assumptions and
+    start at the last waypoint and only find the first local minimum.
+
+    This would probably decrese the number of waypoints that needs to be searched through.
+    '''
+    def closestWaypoint(self, waypoints):
+        closest = 0
+        minDistance = 10**12
+        for i, wp in enumerate(waypoints):
+            temp = self.distanceToWaypoint(wp)
+            if temp < minDistance:
+                closest = i
+                minDistance = temp
+
+        return closest
+
+    '''
+    return: The index of the next waypoint
+    '''
+    def nextWaypoint(self, waypoints):
+        #TODO What to do when we run out of waypoints?
+        wp1 = self.closestWaypoint(waypoints)
+        wp2 = wp1 + 1
+        x1 = waypoints[wp1].pose.pose.position.x
+        y1 = waypoints[wp1].pose.pose.position.y
+        x2 = waypoints[wp2].pose.pose.position.x
+        y2 = waypoints[wp2].pose.pose.position.y
+
+        #vehicle coordinates
+        xv = self.currentPose.position.x
+        yv = self.currentPose.position.y
+
+        #Changing origin to waypoint1
+        x2 -= x1
+        y2 -= y1
+        xv -= x1
+        yv -= x1
+
+        #Dot product
+        dot = x2 * xv + y2 * yv
+
+        '''
+        If the dot product / scalar product is less than 0 the
+        vectors to wp2 and the vehicle points in opposite (kind of) directions.
+        In that case we have not yet passed wp1.
+
+        If the scalar product is greter than 0, the vectors have the same direction
+        and we have passed wp1, wp2 is the next waypoint.
+
+        In the edge case scaler product = 0, we are currently passing wp1.
+        So wp2 is the next waypoint.
+        '''
+        if dot<0:
+            return wp1
+        else:
+            return wp2
 
 if __name__ == '__main__':
     try:
