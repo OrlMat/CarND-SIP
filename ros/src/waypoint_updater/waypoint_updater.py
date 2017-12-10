@@ -4,6 +4,7 @@ import rospy
 from copy import deepcopy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 
 import math
 
@@ -34,7 +35,7 @@ class WaypointUpdater(object):
         rospy.Subscriber('base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-        #rospy.Subscriber('traffic_waypoint', Int32, self.traffic_cb)
+        rospy.Subscriber('traffic_waypoint', Int32, self.traffic_cb)
         print "Have subscribed to current_pose, base_waypoints and traffic_waypoint"
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
@@ -52,7 +53,7 @@ class WaypointUpdater(object):
 
     def loop(self):
         print "Entering loop function"
-        rate = rospy.Rate(2) # 2Hz
+        rate = rospy.Rate(10) # 2Hz
         while not rospy.is_shutdown():
             passedTrafficLight = False
             if (self.baseWaypoints is not None) and (self.currentPose is not None):
