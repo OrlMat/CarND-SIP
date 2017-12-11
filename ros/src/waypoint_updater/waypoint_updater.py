@@ -24,7 +24,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-
+MAX_ACCELERATION = 3
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -40,7 +40,6 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        # TODO: Add other member variables you need below
         self.baseWaypoints = None
         self.currentPose = None
         self.trafficLight = -1
@@ -62,10 +61,6 @@ class WaypointUpdater(object):
                 nextWaypointIndex = self.nextWaypoint(self.baseWaypoints)
                 print "nextWaypointIndex is: " + str(nextWaypointIndex)
 
-                #TODO: Fix deepcopy of the individual waypoints_cb
-                #TODO: Check waypoint speed against maximum speed
-                #TODO: Check trafficLight index and set speed 0.
-                #TODO: Fix all velocities to make sure that we keep within acceleration limits.
                 waypointSet = self.baseWaypoints[nextWaypointIndex:nextWaypointIndex+LOOKAHEAD_WPS]
                 for i, wp in enumerate(waypointSet):
                     newWp = deepcopy(wp)
@@ -80,10 +75,25 @@ class WaypointUpdater(object):
 
                     nextMessage.waypoints.append(newWp)
 
-                #TODO: Fix all velocities differences between neighbouring waypoints to make sure that we keep within acceleration limits before stop signs.
-                for i, wp in enumerate(nextMessage.waypoints[::-1]):
-                    pass
+                '''
+                Fixes all velocities differences between neighbouring waypoints
+                 to make sure that we keep within acceleration limits before stop signs.
 
+                This is done by starting at the last waypoint and looping over
+                the set in reverse while making sure that the
+                acceleration (braking) needed to reach the
+                correct velocities is -3m/s² or less (more? due to negative sign).
+                '''
+                lastWp = nextMessage.waypoints[-1]
+                for wp in nextMessage.waypoints[::-1]:
+                    dist = self.distance2(wp, lastWp)
+                    lastSpeed = self.get_waypoint_velocity(lastWp)
+                    currentSpeed = self.get_waypoint_velocity(wp)
+                    currentSpeed = min(currentSpeed,
+                        lastSpeed + math.sqrt(MAX_ACCELERATION * 2 * dist))
+                    wp.twist.twist.linear.x = currentSpeed
+
+                    lastWp = wp
 
                 self.final_waypoints_pub.publish(nextMessage)
 
@@ -114,6 +124,11 @@ class WaypointUpdater(object):
         for i in range(wp1, wp2+1):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
+        return dist
+
+    def distance2(self, wp1, wp2):
+        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+        dist = dl(wp1.pose.pose.position, wp2.pose.pose.position)
         return dist
 
     def distanceToWaypoint(self, waypoint):
