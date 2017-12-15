@@ -20,6 +20,20 @@ INFO:tensorflow:                   tf_files/udacity_data_mix_jpg/red/ud_224_red1
 INFO:tensorflow:                    tf_files/udacity_data_mix_jpg/red/ud_224_red38.jpg  none
 INFO:tensorflow:Froze 2 variables.
 
+----------------
+Model Speed:
+----------------
+
+Speed Test 1:
+Machine: MacBook Pro. 2.9 GHz Intel Core i7
+Total Evaluation time (100-images):      17.082s
+Average evaluation time (17.082/100):    0.171s
+
+Speed Test 2:
+Machine: Ubuntu 16.04. x86_64. Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz. GeForce GTX 1070
+Total Evaluation time (100-images):	 3.767s
+Average evaluation time (3.767/100):	 0.038s
+
 ---------------------------------
 Training Parameters:
 ---------------------------------
@@ -47,5 +61,4 @@ RANDOM_BRIGHTNESS=5
 # RANDOM_CROP=10
 # RANDOM_SCALE=10
 
------
 
