@@ -1,4 +1,4 @@
-#from styx_msgs.msg import TrafficLight
+from styx_msgs.msg import TrafficLight
 import tensorflow as tf
 import cv2
 import numpy as np
@@ -23,6 +23,7 @@ class TLClassifier(object):
 
     # Reference Repo: tensorflow-for-poets-2
     # https://github.com/googlecodelabs/tensorflow-for-poets-2/blob/master/scripts/label_image.py
+    #Load labels
     def load_labels(label_file):
         labels = []
         proto_as_ascii_lines = tf.gfile.GFile(label_file).readlines()
@@ -53,7 +54,7 @@ class TLClassifier(object):
         return image_data
 
     # Define input & output layer
-    # To tests
+    # For testing
     def layers(self,graph):
         input_layer = "input"
         output_layer = "final_result"
@@ -62,9 +63,9 @@ class TLClassifier(object):
         self.input_operation = graph.get_operation_by_name(input_name)
         self.output_operation = graph.get_operation_by_name(output_name)
 
-    #Run session with preload graph & labels
+    #Run session with preloaded graph & labels
     def sess_run(self, image_data, labels, input_layer, output_layer):
-        # TODO
+        #Get tensor and get predictions
         output_tensor = self.sess.graph.get_tensor_by_name(output_layer)
         predictions, = self.sess.run(output_tensor, {input_layer: image_data, 'Placeholder:0':1.0})
 
