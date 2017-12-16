@@ -17,8 +17,12 @@ class TLClassifier(object):
         self.labels = self.load_labels(model_labels)
 
         #load graph and create session
-        with tf.Session() as sess:
-            self.load_graph(model_graph)
+        graph = self.load_graph(model_graph)
+
+        with tf.Session(graph=graph) as sess:
+            # Define input & output layer
+            self.layers(graph)
+            # Save session
             self.sess = sess
 
     # Reference Repo: tensorflow-for-poets-2
@@ -32,15 +36,24 @@ class TLClassifier(object):
         return labels
 
     #Load graph
-    def load_graph(self, model_file):
+    def load_graph(self, model_graph):
         graph = tf.Graph()
         graph_def = tf.GraphDef()
-        with open(model_file, "rb") as f:
+        with open(model_graph, "rb") as f:
             graph_def.ParseFromString(f.read())
         with graph.as_default():
             tf.import_graph_def(graph_def)
 
         return graph
+
+    # Define input & output layer
+    def layers(self, graph):
+        input_layer = "input"
+        output_layer = "final_result"
+        input_name = "import/" + input_layer
+        output_name = "import/" + output_layer
+        self.input_operation = graph.get_operation_by_name(input_name)
+        self.output_operation = graph.get_operation_by_name(output_name)
 
     #Pipeline to prepare Image to the model mobilenet_1.0_224":
     #Image pipeline : raw image(sim/real) >> resize >> normalize >> reshape to model
@@ -53,29 +66,21 @@ class TLClassifier(object):
         image_data = np.reshape(image_data, (1, 224,224,3))
         return image_data
 
-    # Define input & output layer
-    # For testing
-    def layers(self,graph):
-        input_layer = "input"
-        output_layer = "final_result"
-        input_name = "import/" + input_layer
-        output_name = "import/" + output_layer
-        self.input_operation = graph.get_operation_by_name(input_name)
-        self.output_operation = graph.get_operation_by_name(output_name)
 
     #Run session with preloaded graph & labels
-    def sess_run(self, image_data, labels, input_layer, output_layer):
+    def sess_run(self, image_data, labels):
         #Get tensor and get predictions
-        output_tensor = self.sess.graph.get_tensor_by_name(output_layer)
-        predictions, = self.sess.run(output_tensor, {input_layer: image_data, 'Placeholder:0':1.0})
+        results = self.sess.run(self.output_operation.outputs[0],
+                                {self.input_operation.outputs[0]: image_data})
+        results = np.squeeze(results)
 
         # Sort to show labels in order of confidence
-        top_k = predictions.argsort()[-1:][::-1]
+        top_k = results.argsort()[-1:][::-1]
         for k in top_k:
             label = labels[k]
-            score = predictions[k]
+            score = results[k]
             #Test
-            print('%s (score = %.5f)' % (label, score))
+            print('rob >> label={} score={:04.2f}'.format(label, score))
         return label
 
     #Predict label
@@ -91,10 +96,12 @@ class TLClassifier(object):
         """
         #implement light color prediction
         image_data = self.image_pipeline(image)
-        predict_label = self.sess_run(image_data, self.labels, 'input:0', 'final_result:0')
+        predict_label = self.sess_run(image_data, self.labels)
 
         if predict_label == 'red':
             self.current_light = TrafficLight.RED
         else:
             self.current_light = TrafficLight.UNKNOWN
+        #Test
+        print('rob >> TrafficLight:{}'.format(self.current_light))
         return self.current_light
