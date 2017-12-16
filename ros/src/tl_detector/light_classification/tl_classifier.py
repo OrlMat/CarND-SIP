@@ -10,8 +10,8 @@ class TLClassifier(object):
         self.current_light = TrafficLight.UNKNOWN
 
         #load model
-        model_graph = 'light_classification/model/retrained_graph.txt'
-        model_labels = 'light_classification/model/retrained_labels.pb'
+        model_labels = 'light_classification/model/retrained_labels.txt'
+        model_graph = 'light_classification/model/retrained_graph.pb'
 
         #load labels
         self.labels = self.load_labels(model_labels)
@@ -24,7 +24,7 @@ class TLClassifier(object):
     # Reference Repo: tensorflow-for-poets-2
     # https://github.com/googlecodelabs/tensorflow-for-poets-2/blob/master/scripts/label_image.py
     #Load labels
-    def load_labels(label_file):
+    def load_labels(self,label_file):
         labels = []
         proto_as_ascii_lines = tf.gfile.GFile(label_file).readlines()
         for l in proto_as_ascii_lines:
