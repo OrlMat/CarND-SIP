@@ -34,6 +34,13 @@ Machine: Ubuntu 16.04. x86_64. Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz. GeForce
 Total Evaluation time (100-images):	 3.767s
 Average evaluation time (3.767/100):	 0.038s
 
+
+Speed Test 3:
+Machine: Oracle VirtualBox Machine. Ubuntu-64.
+Total Evaluation time (100-images):	    29.917s
+Average evaluation time (29.917/100):	 0.299s
+
+
 ---------------------------------
 Training Parameters:
 ---------------------------------
