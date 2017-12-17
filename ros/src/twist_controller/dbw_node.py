@@ -43,6 +43,7 @@ class VehicleParams(object):
         self.wheel_base = None
         self.steer_ratio = None
         self.max_lat_accel = None 
+        self.minspeed = None
         self.max_steer_angle = None
       
 class DBWNode(object):
@@ -61,6 +62,7 @@ class DBWNode(object):
         vehParams.steer_ratio = rospy.get_param('~steer_ratio', 14.8)
         vehParams.max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
         vehParams.max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
+        vehParams.min_speed = 0.01
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
@@ -68,6 +70,9 @@ class DBWNode(object):
                                             ThrottleCmd, queue_size=1)
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
+        self.dbw_enabled = True
+        self.twist_cmd = None
+        self.current_velocity = None
 
         # Create `TwistController` object
         self.controller = Controller(vehParams)
@@ -80,13 +85,13 @@ class DBWNode(object):
         self.loop()
 
     # the callback (_cb) functions for the Subscribed topics
-    def twist_cmd_cb(self, twist_cmd)
+    def twist_cmd_cb(self, twist_cmd):
         self.twist_cmd = msg.twist
 
-    def current_velocity_cb(self, current_velocity)
+    def current_velocity_cb(self, current_velocity):
         self.current_velocity = msg.twist
 
-    def dbw_enabled_cb(self, dbw_enabled)
+    def dbw_enabled_cb(self, dbw_enabled):
         self.dbw_enabled = bool(msg.data)
 
     def loop(self):

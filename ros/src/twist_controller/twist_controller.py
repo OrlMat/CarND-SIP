@@ -20,6 +20,7 @@ class Controller(object):
             wheel_base=vehicle_params.wheel_base,
             steer_ratio=vehicle_params.steer_ratio,
             max_lat_accel=vehicle_params.max_lat_accel,
+            min_speed=vehicle_params.min_speed,
             max_steer_angle=vehicle_params.max_steer_angle)
         
         self.vehicle_params = vehicle_params
