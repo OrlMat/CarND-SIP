@@ -2,6 +2,7 @@ from styx_msgs.msg import TrafficLight
 import tensorflow as tf
 import cv2
 import numpy as np
+import rospy
 
 class TLClassifier(object):
     def __init__(self):
@@ -80,7 +81,8 @@ class TLClassifier(object):
             label = labels[k]
             score = results[k]
             #Test
-            print('rob >> label={} score={:04.2f}'.format(label, score))
+            #print('rob >> label={} score={:04.2f}'.format(label, score))
+            rospy.loginfo('rob >> label=%s score=%s',label, score)
         return label
 
     #Predict label
@@ -103,5 +105,6 @@ class TLClassifier(object):
         else:
             self.current_light = TrafficLight.UNKNOWN
         #Test
-        print('rob >> TrafficLight:{}'.format(self.current_light))
+        #print('rob >> TrafficLight:{}'.format(self.current_light))
+        rospy.loginfo('rob >> TrafficLight:%s', self.current_light)
         return self.current_light
