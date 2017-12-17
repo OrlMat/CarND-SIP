@@ -124,13 +124,6 @@ class TLDetector(object):
 
         """
 
-        """
-        TODO - Remove these lines to use the actual light classifier.
-        They just allow us to have the state for testing in the simulator without a complete classifier
-        """
-        rospy.logwarn('TL detector using simulator state')
-        return light.state
-
         if(not self.has_image):
             self.prev_light_loc = None
             return False
@@ -149,6 +142,9 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
+        if self.waypoints is None:
+            return -1, TrafficLight.UNKNOWN
+
         light = None
 
         # List of positions that correspond to the line to stop in front of for a given intersection
