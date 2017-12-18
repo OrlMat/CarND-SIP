@@ -52,6 +52,7 @@ class WaypointUpdater(object):
         self.loop()
 
     def loop(self):
+
         print "Entering loop function"
         rate = rospy.Rate(10) # 2Hz
         while not rospy.is_shutdown():
@@ -61,18 +62,25 @@ class WaypointUpdater(object):
                 nextMessage = Lane()
                 nextWaypointIndex = self.nextWaypoint(self.baseWaypoints)
                 print "nextWaypointIndex is: " + str(nextWaypointIndex)
+                print "TrafficLight is: " + str(self.trafficLight)
+
+                if -1 == self.trafficLight:
+                    print "No trafficStop"
+
 
                 waypointSet = self.baseWaypoints[nextWaypointIndex:nextWaypointIndex+LOOKAHEAD_WPS]
                 for i, wp in enumerate(waypointSet):
                     newWp = deepcopy(wp)
                     index = nextWaypointIndex + i
+
                     newWp.twist.twist.linear.x = min(self.maxSpeed, newWp.twist.twist.linear.x)
 
-                    if index == self.trafficLight:
+                    if index >= self.trafficLight - 50 and not self.trafficLight == -1:
                         passedTrafficLight = True
 
                     if passedTrafficLight:
                         newWp.twist.twist.linear.x = 0
+                        print "ZeroSpeed at index " + str(index)
 
                     nextMessage.waypoints.append(newWp)
 
