@@ -111,7 +111,7 @@ class DBWNode(object):
                 throttle, brake, steering = self.controller.control(
                     self.twist_cmd,
                     self.current_velocity,
-                    self.dbw_enabled)
+                    sample_time)
 
                 self.publish(throttle, brake, steering)
 
