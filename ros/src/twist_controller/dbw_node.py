@@ -94,7 +94,7 @@ class DBWNode(object):
     def current_velocity_cb(self, msg):
         self.current_velocity = msg 
 
-    def dbw_enabled_cb(self, dbw_enabled):
+    def dbw_enabled_cb(self, msg):
         rospy.loginfo("dbw enabled: %s", msg)
         self.dbw_enabled = bool(msg.data)
 

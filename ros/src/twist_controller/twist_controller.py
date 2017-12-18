@@ -28,12 +28,13 @@ class Controller(object):
         self.s_lpf = LowPassFilter(tau, ts)
         self.t_lpf = LowPassFilter(tau, ts)
 
+
+    def control(self, twist_cmd, current_velocity, sample_time):
+
         vehicle_mass = self.vehicle_params.vehicle_mass
         fuel_mass = self.vehicle_params.fuel_capacity * GAS_DENSITY
         wheel_radius = self.vehicle_params.wheel_radius
-
-    def control(self, twist_cmd, current_velocity):
-
+        
         linear_velocity = twist_cmd.twist.linear.x
         angular_velocity = twist_cmd.twist.angular.z
         current_linear_velocity = current_velocity.twist.linear.x
