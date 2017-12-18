@@ -6,13 +6,16 @@ GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
 
 # PID gain coeffs
-kp = 5
-ki = 0.5
-kd = 0.5
+kp = 0.3
+ki = 0.1
+kd = 0.02
+u_rising_rate = 0.75
+u_falling_rate = 3.0
 
 # LowPassFilter paramters
 tau = 3
 ts = 1
+
 
 class Controller(object):
     def __init__(self, vehicle_params):
@@ -24,10 +27,9 @@ class Controller(object):
             max_steer_angle=vehicle_params.max_steer_angle)
         
         self.vehicle_params = vehicle_params
-        self.pid = PID(kp, ki, kd, mn=vehicle_params.decel_limit, mx=vehicle_params.accel_limit)
+        self.pid = PID(kp, ki, kd, u_rising_rate, u_falling_rate, mn=vehicle_params.decel_limit, mx=vehicle_params.accel_limit)
         self.s_lpf = LowPassFilter(tau, ts)
         self.t_lpf = LowPassFilter(tau, ts)
-
 
     def control(self, twist_cmd, current_velocity, sample_time):
 
@@ -39,6 +41,7 @@ class Controller(object):
         angular_velocity = twist_cmd.twist.angular.z
         current_linear_velocity = current_velocity.twist.linear.x
         velocity_error = linear_velocity - current_linear_velocity
+        print(linear_velocity)
 
         get_steer = self.yaw_controller.get_steering(linear_velocity, 
                                                      angular_velocity,
