@@ -11,27 +11,29 @@ class PID(object):
         self.min = mn
         self.max = mx
 
-        self.int_val = self.last_int_val = self.last_error = 0.
+        self.error_i = 0.
+        self.error_prev = 0.
 
     def reset(self):
-        self.int_val = 0.0
-        self.last_int_val = 0.0
+        self.error_i = 0.0
 
-    def step(self, error, sample_time):
-        self.last_int_val = self.int_val
+    def step(self, error, delta_t):
 
-        integral = self.int_val + error * sample_time;
-        derivative = (error - self.last_error) / sample_time;
+        # Calculate derivative and integral parts
+        error_i = self.error_i + error * delta_t
+        error_d = (error - self.error_prev) / delta_t
 
-        y = self.kp * error + self.ki * self.int_val + self.kd * derivative;
-        val = max(self.min, min(y, self.max))
+        # Calculate control
+        u = self.kp * error + self.ki * error_i + self.kd * error_d
+        u_sat = max(self.min, min(u, self.max))
 
-        if val > self.max:
-            val = self.max
-        elif val < self.min:
-            val = self.min
-        else:
-            self.int_val = integral
-        self.last_error = error
+        # Anti Windup
+        u_oversaturated = u_sat - u
+        error_i += u_oversaturated
 
-        return val
+        # Preserve last error data
+        self.error_prev = error
+        self.error_i = error_i
+
+        # Return control
+        return u_sat
