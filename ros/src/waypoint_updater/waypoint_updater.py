@@ -24,8 +24,8 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-MAX_ACCELERATION = 3
+LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
+MAX_DEACCELERATION = -0.2
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -54,19 +54,15 @@ class WaypointUpdater(object):
     def loop(self):
 
         print "Entering loop function"
-        rate = rospy.Rate(10) # 2Hz
+        rate = rospy.Rate(5) # 5Hz
         while not rospy.is_shutdown():
             passedTrafficLight = False
             if (self.baseWaypoints is not None) and (self.currentPose is not None):
                 #print "baseWaypoint and currentPose received"
                 nextMessage = Lane()
                 nextWaypointIndex = self.nextWaypoint(self.baseWaypoints)
-                print "nextWaypointIndex is: " + str(nextWaypointIndex)
-                print "TrafficLight is: " + str(self.trafficLight)
-
-                if -1 == self.trafficLight:
-                    print "No trafficStop"
-
+                #print "nextWaypointIndex is: " + str(nextWaypointIndex)
+                #print "TrafficLight is: " + str(self.trafficLight)
 
                 waypointSet = self.baseWaypoints[nextWaypointIndex:nextWaypointIndex+LOOKAHEAD_WPS]
                 for i, wp in enumerate(waypointSet):
@@ -75,12 +71,11 @@ class WaypointUpdater(object):
 
                     newWp.twist.twist.linear.x = min(self.maxSpeed, newWp.twist.twist.linear.x)
 
-                    if index >= self.trafficLight - 50 and not self.trafficLight == -1:
+                    if index >= self.trafficLight - 15 and not self.trafficLight == -1:
                         passedTrafficLight = True
 
                     if passedTrafficLight:
                         newWp.twist.twist.linear.x = 0
-                        print "ZeroSpeed at index " + str(index)
 
                     nextMessage.waypoints.append(newWp)
 
@@ -93,16 +88,26 @@ class WaypointUpdater(object):
                 acceleration (braking) needed to reach the
                 correct velocities is -3m/s² or less (more? due to negative sign).
                 '''
-                lastWp = nextMessage.waypoints[-1]
-                for wp in nextMessage.waypoints[::-1]:
-                    dist = self.distance2(wp, lastWp)
-                    lastSpeed = self.get_waypoint_velocity(lastWp)
-                    currentSpeed = self.get_waypoint_velocity(wp)
-                    currentSpeed = min(currentSpeed,
-                        lastSpeed + math.sqrt(MAX_ACCELERATION * 2 * dist))
-                    wp.twist.twist.linear.x = currentSpeed
 
-                    lastWp = wp
+                if passedTrafficLight:
+                    lastWp = nextMessage.waypoints[-1]
+                    for i, wp in reversed(list(enumerate(nextMessage.waypoints))):
+                        dist = self.distance2(wp, lastWp)
+                        lastSpeed = self.get_waypoint_velocity(lastWp)
+                        currentSpeed = self.get_waypoint_velocity(wp)
+                        if lastSpeed < 0.1:
+                            speedBasedOnLastSpeed = lastSpeed + math.sqrt(-2 * MAX_DEACCELERATION * dist)
+                        else:
+                            temp = MAX_DEACCELERATION / (2 * dist)
+                            speedBasedOnLastSpeed = lastSpeed * (1 - temp) / (1 + temp)
+                        print "dist: " + str(dist) + " - lastSpeed: " + str(lastSpeed) + \
+                        " - currentSpeed: " + str(currentSpeed) + \
+                        " - speedBasedOnLastSpeed: " + str(speedBasedOnLastSpeed) + \
+                        " - index: " + str(i)
+                        currentSpeed = min(currentSpeed, speedBasedOnLastSpeed)
+                        nextMessage.waypoints[i].twist.twist.linear.x = currentSpeed
+
+                        lastWp = nextMessage.waypoints[i]
 
                 self.final_waypoints_pub.publish(nextMessage)
 
