@@ -25,7 +25,7 @@ import numpy as np
 import tensorflow as tf
 
 #Number of images to predict
-N = 10
+N = 1
 
 def load_graph(model_file):
   graph = tf.Graph()

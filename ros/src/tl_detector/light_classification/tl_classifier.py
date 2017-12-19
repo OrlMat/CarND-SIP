@@ -2,7 +2,6 @@ from styx_msgs.msg import TrafficLight
 import tensorflow as tf
 import cv2
 import numpy as np
-import rospy
 
 class TLClassifier(object):
     def __init__(self):
@@ -11,8 +10,9 @@ class TLClassifier(object):
         self.current_light = TrafficLight.UNKNOWN
 
         #load model
-        model_labels = 'light_classification/model/retrained_labels.txt'
-        model_graph = 'light_classification/model/retrained_graph.pb'
+        #mobilenet_1.0_224-2017_12_19_152253 >> 4 labels:RYGN
+        model_labels = 'light_classification/model/mobilenet_1.0_224-2017_12_19_152253/retrained_labels.txt'
+        model_graph = 'light_classification/model/mobilenet_1.0_224-2017_12_19_152253/retrained_graph.pb'
 
         #load labels
         self.labels = self.load_labels(model_labels)
@@ -67,6 +67,19 @@ class TLClassifier(object):
         image_data = np.reshape(image_data, (1, 224,224,3))
         return image_data
 
+    #Test
+    def read_tensor_from_image_file(img_cv,sess, input_height=224, input_width=224,
+                                    input_mean=128, input_std=128):
+        #Convert opencv image to Numpy array
+        np_image_data = np.asarray(img_cv)
+
+        dims_expander = tf.expand_dims(np_image_data, axis=0);
+
+        resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
+        normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
+        result = sess.run(normalized)
+
+        return result
 
     #Run session with preloaded graph & labels
     def sess_run(self, image_data, labels):
@@ -76,14 +89,14 @@ class TLClassifier(object):
         results = np.squeeze(results)
 
         # Sort to show labels in order of confidence
-        top_k = results.argsort()[-1:][::-1]
+        top_k = results.argsort()[-2:][::-1]
         for k in top_k:
             label = labels[k]
             score = results[k]
             #Test
-            #print('rob >> label={} score={:04.2f}'.format(label, score))
-            rospy.loginfo('rob >> label=%s score=%s',label, score)
-        return label
+            print('rob >> label={} score={:04.2f}'.format(label, score))
+        return labels[top_k[0]]
+
 
     #Predict label
     def get_classification(self, image):
@@ -97,14 +110,19 @@ class TLClassifier(object):
 
         """
         #implement light color prediction
-        image_data = self.image_pipeline(image)
-        predict_label = self.sess_run(image_data, self.labels)
+        image_pipeline = self.image_pipeline(image)
+        #test
+        #image_pipeline = self.read_tensor_from_image_file(image,self.sess)
+        predict_label = self.sess_run(image_pipeline, self.labels)
 
         if predict_label == 'red':
             self.current_light = TrafficLight.RED
+        elif predict_label == 'yellow':
+            self.current_light = TrafficLight.YELLOW
+        elif predict_label == 'green':
+            self.current_light = TrafficLight.GREEN
         else:
             self.current_light = TrafficLight.UNKNOWN
         #Test
-        #print('rob >> TrafficLight:{}'.format(self.current_light))
-        rospy.loginfo('rob >> TrafficLight:%s', self.current_light)
+        print('rob >> TrafficLight:{}'.format(self.current_light))
         return self.current_light
