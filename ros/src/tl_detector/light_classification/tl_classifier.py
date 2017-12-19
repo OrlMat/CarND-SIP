@@ -90,7 +90,7 @@ class TLClassifier(object):
         results = np.squeeze(results)
 
         # Sort to show labels in order of confidence
-        top_k = results.argsort()[-2:][::-1]
+        top_k = results.argsort()[-3:][::-1]
         for k in top_k:
             label = labels[k]
             score = results[k]
