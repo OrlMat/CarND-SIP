@@ -11,8 +11,9 @@ class TLClassifier(object):
 
         #load model
         #mobilenet_1.0_224-2017_12_19_152253 >> 4 labels:RYGN
-        model_labels = 'light_classification/model/mobilenet_1.0_224-2017_12_19_152253/retrained_labels.txt'
-        model_graph = 'light_classification/model/mobilenet_1.0_224-2017_12_19_152253/retrained_graph.pb'
+        #mobilenet_1.0_224-2017_12_19_162810 >> 3 labels:RYN
+        model_labels = 'light_classification/model/mobilenet_1.0_224-2017_12_19_162810/retrained_labels.txt'
+        model_graph = 'light_classification/model/mobilenet_1.0_224-2017_12_19_162810/retrained_graph.pb'
 
         #load labels
         self.labels = self.load_labels(model_labels)

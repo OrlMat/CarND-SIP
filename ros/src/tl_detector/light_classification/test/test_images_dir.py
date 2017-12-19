@@ -71,8 +71,8 @@ def load_labels(label_file):
 if __name__ == "__main__":
   file_name = "tf_files/flower_photos/daisy/3475870145_685a19116d.jpg"
   # load model
-  label_file = '../model/mobilenet_1.0_224-2017_12_19_152253/retrained_labels.txt'
-  model_file = '../model/mobilenet_1.0_224-2017_12_19_152253/retrained_graph.pb'
+  label_file = '../model/mobilenet_1.0_224-2017_12_19_162810/retrained_labels.txt'
+  model_file = '../model/mobilenet_1.0_224-2017_12_19_162810/retrained_graph.pb'
   input_height = 224
   input_width = 224
   input_mean = 128

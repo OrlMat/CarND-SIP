@@ -1,0 +1,36 @@
+INFO:tensorflow:Final test accuracy = 97.4% (N=423)
+INFO:tensorflow:=== MISCLASSIFIED TEST IMAGES ===
+INFO:tensorflow:                    tf_files/udacity_data_mix_jpg/red/ud_224_red57.jpg  yellow
+INFO:tensorflow:                  tf_files/udacity_data_mix_jpg/red/ud_224_red39_v.jpg  yellow
+INFO:tensorflow:                  tf_files/udacity_data_mix_jpg/red/ud_224_red43_v.jpg  yellow
+INFO:tensorflow:                  tf_files/udacity_data_mix_jpg/red/ud_224_red17_v.jpg  yellow
+INFO:tensorflow:                    tf_files/udacity_data_mix_jpg/red/ud_224_red43.jpg  yellow
+INFO:tensorflow:                   tf_files/udacity_data_mix_jpg/red/ud_224_red340.jpg  yellow
+INFO:tensorflow:              tf_files/udacity_data_mix_jpg/yellow/ud_224_yellow50.jpg  red
+INFO:tensorflow:              tf_files/udacity_data_mix_jpg/yellow/ud_224_yellow34.jpg  red
+INFO:tensorflow:            tf_files/udacity_data_mix_jpg/yellow/ud_224_yellow50_v.jpg  red
+INFO:tensorflow:           tf_files/udacity_data_mix_jpg/yellow/ud_224_yellow53_v2.jpg  red
+INFO:tensorflow:            tf_files/udacity_data_mix_jpg/yellow/ud_224_yellow34_v.jpg  red
+INFO:tensorflow:Froze 2 variables.
+
+---------------------------------
+Training Parameters:
+---------------------------------
+IMAGE_SIZE=224
+ARCHITECTURE="mobilenet_1.0_224"
+DATE=$(date +%Y_%m_%d_%H%M%S)
+FOLDER_ARCH="$ARCHITECTURE-$DATE"
+IMAGE_DIR="tf_files/udacity_data_mix_jpg"
+SUMMARIES_DIR="tf_files/training_summaries/$FOLDER_ARCH/"
+OUTPUT_GRAPH="tf_files/trained_models/$FOLDER_ARCH/retrained_graph.pb"
+OUTPUT_LABELS="tf_files/trained_models/$FOLDER_ARCH/retrained_labels.txt"
+HOW_MANY_TRAINING_STEPS=4000
+INTERMEDIATE_STORE_FREQUENCY=500
+LEARNING_RATE=5e-3
+TRAIN_BATCH_SIZE=100
+TEST_BATCH_SIZE=-1
+INTERMEDIATE_OUTPUT_GRAPHS_DIR="tf_files/trained_models/$FOLDER_ARCH/"
+MODEL_DIR="tf_files/models/"
+BOTTLENECK_DIR="tf_files/bottlenecks"
+RANDOM_BRIGHTNESS=5
+-----
