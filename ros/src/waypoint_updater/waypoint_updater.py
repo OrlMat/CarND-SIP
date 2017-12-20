@@ -24,8 +24,10 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
-MAX_DEACCELERATION = -0.2
+LOOKAHEAD_WPS = 150 # Approximatly 0.6m between waypoints,
+#20 waypoints is slighly more than 1 seconds at maximum speed. (11.111m/s)
+MAX_DEACCELERATION = -1.5 #m/s²,
+STOP_AHEAD = 8
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -35,7 +37,6 @@ class WaypointUpdater(object):
         rospy.Subscriber('current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('base_waypoints', Lane, self.waypoints_cb)
 
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         rospy.Subscriber('traffic_waypoint', Int32, self.traffic_cb)
         print "Have subscribed to current_pose, base_waypoints and traffic_waypoint"
 
@@ -71,7 +72,7 @@ class WaypointUpdater(object):
 
                     newWp.twist.twist.linear.x = min(self.maxSpeed, newWp.twist.twist.linear.x)
 
-                    if index >= self.trafficLight - 15 and not self.trafficLight == -1:
+                    if index >= self.trafficLight - STOP_AHEAD and not self.trafficLight == -1:
                         passedTrafficLight = True
 
                     if passedTrafficLight:
@@ -95,15 +96,15 @@ class WaypointUpdater(object):
                         dist = self.distance2(wp, lastWp)
                         lastSpeed = self.get_waypoint_velocity(lastWp)
                         currentSpeed = self.get_waypoint_velocity(wp)
-                        if lastSpeed < 0.1:
-                            speedBasedOnLastSpeed = lastSpeed + math.sqrt(-2 * MAX_DEACCELERATION * dist)
-                        else:
-                            temp = MAX_DEACCELERATION / (2 * dist)
-                            speedBasedOnLastSpeed = lastSpeed * (1 - temp) / (1 + temp)
+
+                        speedBasedOnLastSpeed = math.sqrt(lastSpeed**2 - 2 * MAX_DEACCELERATION * dist)
+
+                        '''
                         print "dist: " + str(dist) + " - lastSpeed: " + str(lastSpeed) + \
                         " - currentSpeed: " + str(currentSpeed) + \
                         " - speedBasedOnLastSpeed: " + str(speedBasedOnLastSpeed) + \
                         " - index: " + str(i)
+                        '''
                         currentSpeed = min(currentSpeed, speedBasedOnLastSpeed)
                         nextMessage.waypoints[i].twist.twist.linear.x = currentSpeed
 
@@ -192,7 +193,7 @@ class WaypointUpdater(object):
         x2 -= x1
         y2 -= y1
         xv -= x1
-        yv -= x1
+        yv -= y1
 
         #Dot product
         dot = x2 * xv + y2 * yv
