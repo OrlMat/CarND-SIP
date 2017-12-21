@@ -179,6 +179,10 @@ class WaypointUpdater(object):
     def nextWaypoint(self, waypoints):
         #TODO What to do when we run out of waypoints?
         wp1 = self.closestWaypoint(waypoints)
+
+        if wp1 == len(waypoints) - 1: #Prevents index out of bounds problems.
+            return wp1
+
         wp2 = wp1 + 1
         x1 = waypoints[wp1].pose.pose.position.x
         y1 = waypoints[wp1].pose.pose.position.y
