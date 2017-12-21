@@ -1,3 +1,4 @@
+INFO:tensorflow:Final test accuracy = 94.4% (N=515)
 INFO:tensorflow:=== MISCLASSIFIED TEST IMAGES ===
 INFO:tensorflow:               tf_files/udacity_data_mix_jpg/green/ud_224_green278.jpg  red
 INFO:tensorflow:               tf_files/udacity_data_mix_jpg/green/ud_224_green247.jpg  red
