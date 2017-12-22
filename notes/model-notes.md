@@ -57,10 +57,7 @@ Udacity Dataset annotated by Anthony Sarkis
 
 ### 4. Models
 
-For this project, we select a MobileNet model because:  
-+ We only need to know if traficc light is red or not.  
-  + To drive Carla (Sim & Real), this prediction is enough.
-+ MobileNet is a fast model.
+For this project, we use a MobileNet model because is a fast model.
  
 We select a MobileNet model from TensorFlow pretained models:
 + MobileNet_v1_1.0_224
@@ -84,14 +81,25 @@ During training we have tested several combinations of:
 
 #### 4.3 Train Models
 
-We retrain the model the new labels none and red.
+We retrain several models with:  
++ 2 labels:RN / RedNone
++ 3 labels:RYN / RedYellowNone
++ 4 labels:RYGN / RedYellowGreenNone
+
 We use a mix of images from simulator Udacity and from real (rosbag).  
 + Number of Images:  
-  + none : 2219  
-  + red : 911  
+  + none : ~1500  
+  + red : ~1200  
+  + yello : ~1200
+  + green : ~1200  
+  
 + Optimizer : GradientDescentOptimizer with a low learning rate.
 
-**We get a final test accuracy of 94.5%**
+We get a final test accuracies of:
++ Model with 2 labels : 94.5%  
++ Model with 3 labels : **97.4%**
++ Model wiht 4 labels : 94.4%
+
 
 ### 5. Optimize Models (Speed, size)
 
@@ -113,6 +121,37 @@ Results from Speed Tests:
   + Machine: Oracle VirtualBox Machine. Ubuntu-64.
   + Total Evaluation time (100-images):	    29.917s
   + Average evaluation time (29.917/100):	 0.299s
+
+#### 5.1 Optimize for inference  
+
+TensorFlow  includes a tool, optimize_for_inference that reduce the model size and help speed up the model:
++ It removes all nodes that aren't needed for a given set of input and outputs.
++ It merges explicit batch normalization operations into the convolutional weights to reduce the number of calculations.
+ 
+This optimization could give up to 30% speedup, **depending on the input model**.
+
+After to apply this process to our MobileNet model, retrained_graph.ph, we get a new model: optimized_graph.pb.
+
+We get a similar speed and an equal accuracy.
+
+Speed Test Results: mobilenet_1.0_224-2017_12_19_162810  
+
+1.  No optimized: retrained_graph.ph
+Total Evaluation time (100-images):      15.976s
+Average evaluation time (15.976/100):    0.160s
+
+2. Optimized: optimized_graph
+Total Evaluation time (100-images):      14.720s
+Average evaluation time (14.720/100):    0.147s
+
+Accuracy Test Results:
+1. No optimized: retrained_graph.ph
+Accuracy: 0.931442
+Cross Entropy: 0.124297
+
+2. Optimized: optimized_graph
+Accuracy: 0.931442
+Cross Entropy: 0.124297
 
 
 ------------------
@@ -154,6 +193,8 @@ https://github.com/googlecodelabs/tensorflow-for-poets-2/
 
 --------------------------------
 
+We don't follow this pipeline..
+
 ### 4.1.PIPELINE for Object (traffic light) detection and classification using FCN models like YOLO, SSD.
 For this project, we don't use FCN models 
 
@@ -189,4 +230,3 @@ Ref: https://github.com/tensorflow/models/blob/master/research/object_detection/
 
 ### 5. Optimize Models (Speed, size)
 
-(To be continued ;)

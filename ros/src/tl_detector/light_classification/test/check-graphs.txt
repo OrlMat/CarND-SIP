@@ -1,0 +1,33 @@
+pkill -f tensorboard
+tensorboard --logdir tf_files/training_summaries &
+
+python -m scripts.graph_pb2tb tf_files/training_summaries/retrained \
+  tf_files/trained_models/mobilenet_1.0_224-2017_12_19_162810-optimized/retrained_graph.pb
+
+python -m scripts.graph_pb2tb tf_files/training_summaries/optimized \
+  tf_files/trained_models/mobilenet_1.0_224-2017_12_19_162810-optimized/optimized_graph.pb
+
+
+Quantize the network weights
+
+python -m scripts.quantize_graph \
+  --input=tf_files/trained_models/mobilenet_1.0_224-2017_12_19_162810-optimized/optimized_graph.pb \
+  --output=tf_files/trained_models/mobilenet_1.0_224-2017_12_19_162810-optimized/rounded_graph.pb \
+  --output_node_names=final_result \
+  --mode=weights_rounded
+
+python -m scripts.evaluate tf_files/trained_models/mobilenet_1.0_224-2017_12_19_162810/retrained_graph.pb
+
+
+------------------------
+retrained_graph:
+Accuracy: 0.931442
+Cross Entropy: 0.124297
+
+optimized_graph:
+Accuracy: 0.931442
+Cross Entropy: 0.124297
+
+rounded_graph:
+Accuracy: 0.815603
+Cross Entropy: 0.433133

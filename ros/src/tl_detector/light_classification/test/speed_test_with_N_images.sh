@@ -1,10 +1,25 @@
 #!/usr/bin/env bash
 
-IMAGE=out_300022.jpg
-GRAPH=../model/retrained_graph.pb
-LABELS=../model/retrained_labels.txt
+IMAGE=images/sim_green.jpg
+GRAPH=../model/mobilenet_1.0_224-2017_12_19_162810/optimized_graph.pb
+LABELS=../model/mobilenet_1.0_224-2017_12_19_162810/retrained_labels.txt
+
 
 python -m  label_N_images --image="$IMAGE" --graph="$GRAPH" --labels="$LABELS"
+
+#Speed Test Results:
+#mobilenet_1.0_224-2017_12_19_162810
+#1.No optimized
+#Total Evaluation time (100-images):      15.976s
+#Average evaluation time (15.976/100):    0.160s
+#2.No optimized
+#Total Evaluation time (100-images):      14.720s
+#Average evaluation time (14.720/100):    0.147s
+#3.Rounded
+#Total Evaluation time (100-images):      14.580s
+#Average evaluation time (14.580/100):    0.146s
+
+
 
 #optional arguments:
 #  -h, --help            show this help message and exit
