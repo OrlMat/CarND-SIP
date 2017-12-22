@@ -97,7 +97,7 @@ We use a mix of images from simulator Udacity and from real (rosbag).
 
 We get a final test accuracies of:
 + Model with 2 labels : 94.5%  
-+ Model with 3 labels : **97.4%**
++ Model with 3 labels : **93.1%**
 + Model wiht 4 labels : 94.4%
 
 
