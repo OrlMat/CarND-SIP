@@ -4,34 +4,47 @@ MAX_NUM = float('inf')
 
 
 class PID(object):
-    def __init__(self, kp, ki, kd, mn=MIN_NUM, mx=MAX_NUM):
+    def __init__(self, kp, ki, kd, u_rising_slew_rate, u_falling_slew_rate, mn=MIN_NUM, mx=MAX_NUM):
         self.kp = kp
         self.ki = ki
         self.kd = kd
-        self.min = mn
-        self.max = mx
+        self.u_min = mn
+        self.u_max = mx
 
-        self.int_val = self.last_int_val = self.last_error = 0.
+        self.u_rising_slew_rate = u_rising_slew_rate
+        self.u_falling_slew_rate = u_falling_slew_rate
+
+        self.error_i = 0.
+        self.error_prev = 0.
+        self.u_prev = 0
 
     def reset(self):
-        self.int_val = 0.0
-        self.last_int_val = 0.0
+        self.error_i = 0.0
 
-    def step(self, error, sample_time):
-        self.last_int_val = self.int_val
+    def step(self, error, delta_t):
 
-        integral = self.int_val + error * sample_time;
-        derivative = (error - self.last_error) / sample_time;
+        # Calculate derivative and integral parts
+        error_i = self.error_i + error * delta_t
+        error_d = (error - self.error_prev) / delta_t
 
-        y = self.kp * error + self.ki * self.int_val + self.kd * derivative;
-        val = max(self.min, min(y, self.max))
+        # Calculate control
+        u = self.kp * error + self.ki * error_i + self.kd * error_d
 
-        if val > self.max:
-            val = self.max
-        elif val < self.min:
-            val = self.min
-        else:
-            self.int_val = integral
-        self.last_error = error
+        # Saturate control with control rate limiter
+        u_rising_delta = self.u_rising_slew_rate * delta_t
+        u_falling_delta = self.u_falling_slew_rate * delta_t
+        u_max = min(self.u_prev + u_rising_delta, self.u_max)
+        u_min = max(self.u_prev - u_falling_delta, self.u_min)
+        u_sat = max(u_min, min(u, u_max))
 
-        return val
+        # Anti Windup
+        u_oversaturated = u_sat - u
+        error_i += u_oversaturated
+
+        # Preserve last error data
+        self.error_prev = error
+        self.error_i = error_i
+        self.u_prev = u_sat
+
+        # Return control
+        return u_sat
