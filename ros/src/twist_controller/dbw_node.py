@@ -115,6 +115,11 @@ class DBWNode(object):
 
                 self.publish(throttle, brake, steering)
 
+            # In case of manual steering, reset pid controller
+            elif not self.dbw_enabled:
+                self.controller.pid.reset()
+
+
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
